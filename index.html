@@ -1,0 +1,99 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Despliegue web · Edwin Valenzuela</title>
+  <style>
+    :root{font-family:Inter,Segoe UI,Arial,sans-serif;color:#16352e;background:#f4f6f2;font-synthesis:none}
+    *{box-sizing:border-box}body{margin:0}header{border-bottom:1px solid #dce4da;background:#fff}nav{max-width:1040px;margin:auto;padding:22px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}.brand{font-weight:750;letter-spacing:-.5px}.brand span{display:inline-grid;place-items:center;background:#176344;color:white;border-radius:8px;width:36px;height:36px;margin-right:12px;font-size:12px;letter-spacing:0}.nav-label{font-size:12px;color:#64766c}main{max-width:900px;margin:60px auto;padding:0 28px 40px}.eyebrow{font-size:11px;font-weight:750;letter-spacing:2px;color:#557664;margin-bottom:16px}h1{font-size:clamp(32px,5vw,48px);line-height:1.12;letter-spacing:-1.8px;margin:0 0 18px;max-width:650px}.intro{font-size:16px;color:#627268;line-height:1.7;max-width:620px}.flow{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin:30px 0;font-size:12px;color:#53695c}.flow b{background:white;border:1px solid #dce4da;border-radius:7px;padding:10px 14px;font-weight:600}.card{background:white;border:1px solid #d8e2d8;border-radius:16px;overflow:hidden;box-shadow:0 14px 40px #173e2507}.card-head{padding:24px 28px;border-bottom:1px solid #e5ebe3;display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap}.card-head h2{font-size:18px;letter-spacing:-.4px;margin:0}.badge{font-size:11px;font-weight:700;background:#edf2ec;color:#596b5b;padding:7px 11px;border-radius:100px}.badge[data-state="success"]{background:#e4f4e9;color:#23633c}.badge[data-state="error"]{background:#fbecea;color:#9d302e}.body{padding:26px 28px}.status{font-size:14px;line-height:1.6;color:#586b60;margin:0}.error{color:#a2322a;background:#fff4f2;padding:16px;border-radius:8px}dl{display:grid;grid-template-columns:1fr 1fr;gap:26px 32px;margin:0}dt{font-size:10px;color:#728174;letter-spacing:1.5px;font-weight:700;text-transform:uppercase;margin-bottom:8px}dd{margin:0;font-size:15px;line-height:1.5;overflow-wrap:anywhere}.response{margin-top:28px;padding-top:22px;border-top:1px solid #e5ebe3;font-size:13px;color:#276143}.response p{margin:0 0 10px}.response time{color:#687a6c;font-size:12px;overflow-wrap:anywhere}.card-foot{background:#fafbf8;border-top:1px solid #e5ebe3;padding:16px 28px;display:flex;justify-content:space-between;align-items:center;gap:14px;flex-wrap:wrap}code{font-size:11px;color:#64786a;overflow-wrap:anywhere}button{font:inherit;font-size:12px;font-weight:650;cursor:pointer;color:#fff;background:#1d6245;border:0;border-radius:7px;padding:10px 15px}button:hover{background:#124c33}button:focus-visible{outline:3px solid #a0cbae;outline-offset:3px}button:disabled{cursor:wait;opacity:.5}footer{margin-top:25px;font-size:11px;line-height:1.7;color:#7c897f;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}[hidden]{display:none!important}@media(max-width:580px){nav{padding:18px 20px}.nav-label{display:none}main{margin-top:36px;padding:0 20px 30px}.card-head,.body{padding:22px}dl{grid-template-columns:1fr;gap:22px}.card-foot{padding:16px 22px}h1{letter-spacing:-1px}}
+  </style>
+</head>
+<body>
+  <header><nav aria-label="Encabezado"><div class="brand"><span>UVG</span>Campus Altiplano</div><div class="nav-label">Programación Web 2 · Laboratorio</div></nav></header>
+  <main>
+    <p class="eyebrow">LABORATORIO / DESPLIEGUE WEB</p>
+    <h1>Dos aplicaciones.<br>Una conexión en tiempo real.</h1>
+    <p class="intro">Un frontend independiente consulta una API REST y presenta su respuesta. Cada actualización trae los datos directamente del servidor.</p>
+    <div class="flow" aria-label="Arquitectura"><b>Frontend · Vercel</b><span aria-hidden="true">→</span><span>GET /test</span><span aria-hidden="true">→</span><b>API · Render</b></div>
+    <section class="card" aria-labelledby="card-title" aria-busy="true" id="card">
+      <div class="card-head"><h2 id="card-title">Respuesta del servidor</h2><span class="badge" id="badge">Conectando</span></div>
+      <div class="body">
+        <p class="status" id="loading" role="status">Cargando… La primera conexión con Render puede tardar alrededor de un minuto.</p>
+        <p class="status error" id="error" role="alert" hidden></p>
+        <div id="result" hidden>
+          <dl id="data"></dl>
+          <div class="response"><p id="message"></p><time id="timestamp"></time></div>
+        </div>
+      </div>
+      <div class="card-foot"><code id="endpoint"></code><button id="retry" type="button" disabled>Actualizar datos</button></div>
+    </section>
+    <footer><span>Edwin Manuel Valenzuela Chaj · 231715</span><span>HTML + CSS + JavaScript / Node.js + Express</span></footer>
+  </main>
+  <script>
+    // Sustituir por la URL HTTPS de Render, sin barra al final, al desplegar.
+    const API_URL = "http://localhost:3000";
+
+    const card = document.getElementById('card');
+    const loading = document.getElementById('loading');
+    const error = document.getElementById('error');
+    const result = document.getElementById('result');
+    const badge = document.getElementById('badge');
+    const retry = document.getElementById('retry');
+    const labels = { estudiante: 'Estudiante', carne: 'Carné', curso: 'Curso', campus: 'Campus', tecnologia: 'Tecnología', plataforma: 'Plataforma' };
+    document.getElementById('endpoint').textContent = 'GET ' + API_URL + '/test';
+
+    async function cargarDatos() {
+      loading.hidden = false;
+      error.hidden = true;
+      result.hidden = true;
+      retry.disabled = true;
+      card.setAttribute('aria-busy', 'true');
+      badge.textContent = 'Conectando';
+      badge.dataset.state = 'loading';
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 120000);
+      try {
+        const response = await fetch(API_URL + "/test", { signal: controller.signal, cache: 'no-store' });
+        if (!response.ok) throw new Error('El servidor respondió HTTP ' + response.status + '.');
+        const payload = await response.json();
+        if (payload.success !== true || payload.status !== 200 || !payload.data || typeof payload.data !== 'object' || Array.isArray(payload.data) || !Object.keys(labels).every(key => typeof payload.data[key] === 'string') || typeof payload.message !== 'string' || typeof payload.timestamp !== 'string' || Number.isNaN(Date.parse(payload.timestamp))) {
+          throw new Error('La API devolvió un formato de respuesta inesperado.');
+        }
+        const dataList = document.getElementById('data');
+        dataList.replaceChildren();
+        for (const [key, value] of Object.entries(payload.data)) {
+          const group = document.createElement('div');
+          const term = document.createElement('dt');
+          const description = document.createElement('dd');
+          term.textContent = labels[key] || key;
+          description.textContent = String(value);
+          group.append(term, description);
+          dataList.append(group);
+        }
+        document.getElementById('message').textContent = payload.message;
+        const timestamp = document.getElementById('timestamp');
+        timestamp.dateTime = payload.timestamp;
+        timestamp.textContent = 'Timestamp (UTC): ' + payload.timestamp;
+        badge.textContent = 'HTTP ' + response.status + ' · Conectado';
+        badge.dataset.state = 'success';
+        result.hidden = false;
+      } catch (cause) {
+        const detail = cause.name === 'AbortError' ? 'Se agotó el tiempo de espera. Render puede estar iniciando; vuelve a intentarlo.' : cause.message;
+        error.textContent = 'No se pudo cargar la información. ' + detail + ' Verifica la conexión y que la API esté disponible.';
+        error.hidden = false;
+        badge.textContent = 'Sin conexión';
+        badge.dataset.state = 'error';
+      } finally {
+        clearTimeout(timeout);
+        loading.hidden = true;
+        retry.disabled = false;
+        card.setAttribute('aria-busy', 'false');
+      }
+    }
+    retry.addEventListener('click', cargarDatos);
+    cargarDatos();
+  </script>
+</body>
+</html>
